@@ -1,0 +1,49 @@
+﻿@model IEnumerable<Microsoft.AspNetCore.Identity.IdentityUser>
+
+<h2>إدارة المستخدمين</h2>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>البريد الإلكتروني</th>
+            <th>الدور الحالي</th>
+            <th>تغيير الدور</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            var roles = ViewBag.UserRoles[user.Id] as IList<string>;
+            var currentRole = roles?.FirstOrDefault() ?? "بدون دور";
+
+            <tr>
+                <td>@user.Email</td>
+                <td>
+                    @if (currentRole == "Admin")
+                    {
+                        <span class="badge bg-danger">Admin</span>
+                    }
+                    else if (currentRole == "Doctor")
+                    {
+                        <span class="badge bg-success">Doctor</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning">Receptionist</span>
+                    }
+                </td>
+                <td>
+                    <form asp-action="ChangeRole" method="post" class="d-flex gap-2">
+                        <input type="hidden" name="userId" value="@user.Id" />
+                        <select name="newRole" class="form-control form-control-sm">
+                            <option value="Admin">Admin</option>
+                            <option value="Doctor">Doctor</option>
+                            <option value="Receptionist">Receptionist</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary btn-sm">تغيير</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

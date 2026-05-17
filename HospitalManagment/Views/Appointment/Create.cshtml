@@ -1,0 +1,58 @@
+﻿@model HospitalManagment.Models.Appointment
+
+<h2>إضافة موعد جديد</h2>
+
+<form asp-action="Create" method="post">
+    <div class="mb-3">
+        <label class="form-label">المريض</label>
+        <select asp-for="PatientId" class="form-control">
+            <option value="">-- اختر المريض --</option>
+            @foreach (var patient in ViewBag.Patients)
+            {
+                <option value="@patient.Id">@patient.FullName</option>
+            }
+        </select>
+        <span asp-validation-for="PatientId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">الطبيب</label>
+        <select asp-for="DoctorId" class="form-control">
+            <option value="">-- اختر الطبيب --</option>
+            @foreach (var doctor in ViewBag.Doctors)
+            {
+                <option value="@doctor.Id">@doctor.FullName - @doctor.Specialization</option>
+            }
+        </select>
+        <span asp-validation-for="DoctorId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">تاريخ الموعد</label>
+        <input asp-for="AppointmentDate" type="datetime-local" class="form-control" />
+        <span asp-validation-for="AppointmentDate" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">الحالة</label>
+        <select asp-for="Status" class="form-control">
+            <option value="منتظر">منتظر</option>
+            <option value="مكتمل">مكتمل</option>
+            <option value="ملغي">ملغي</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">ملاحظات</label>
+        <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-success">حفظ</button>
+    <a asp-action="Index" class="btn btn-secondary">إلغاء</a>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

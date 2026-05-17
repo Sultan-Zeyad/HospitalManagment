@@ -1,0 +1,168 @@
+﻿@model HospitalManagement.Models.DashboardViewModel
+
+<h2 class="mb-4">🏥 لوحة التحكم</h2>
+
+<!-- إحصائيات -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary shadow mb-3">
+            <div class="card-body text-center">
+                <h1>@Model.TotalPatients</h1>
+                <p class="mb-0">إجمالي المرضى</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success shadow mb-3">
+            <div class="card-body text-center">
+                <h1>@Model.TotalDoctors</h1>
+                <p class="mb-0">إجمالي الأطباء</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info shadow mb-3">
+            <div class="card-body text-center">
+                <h1>@Model.TodayAppointments</h1>
+                <p class="mb-0">مواعيد اليوم</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-dark shadow mb-3">
+            <div class="card-body text-center">
+                <h1>@Model.TotalAppointments</h1>
+                <p class="mb-0">إجمالي المواعيد</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row mb-4">
+
+    <!-- Chart 1: مواعيد شهرية -->
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header">المواعيد الشهرية</div>
+            <div class="card-body">
+                <canvas id="monthlyChart" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart 2: حالات المواعيد -->
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-header">حالات المواعيد</div>
+            <div class="card-body">
+                <canvas id="statusChart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- آخر المواعيد -->
+<div class="card shadow">
+    <div class="card-header">آخر المواعيد</div>
+    <div class="card-body p-0">
+        <table class="table table-bordered mb-0">
+            <thead>
+                <tr>
+                    <th>المريض</th>
+                    <th>الطبيب</th>
+                    <th>التاريخ</th>
+                    <th>الحالة</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var appointment in Model.LatestAppointments)
+                {
+                    <tr>
+                        <td>@appointment.Patient?.FullName</td>
+                        <td>@appointment.Doctor?.FullName</td>
+                        <td>@appointment.AppointmentDate.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>
+                            @if (appointment.Status == "منتظر")
+                            {
+                                <span class="badge bg-warning">منتظر</span>
+                            }
+                            else if (appointment.Status == "مكتمل")
+                            {
+                                <span class="badge bg-success">مكتمل</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">ملغي</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // بيانات المواعيد الشهرية
+        const monthNames = ['يناير','فبراير','مارس','أبريل','مايو','يونيو',
+                            'يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+
+        const monthlyData = @Html.Raw(
+                    Newtonsoft.Json.JsonConvert.SerializeObject(
+                            Enumerable.Range(1, 12).Select(m => Model.AppointmentsPerMonth
+                                    .ContainsKey(m) ? Model.AppointmentsPerMonth[m] : 0)
+                    )
+            );
+
+    // Chart 1 - مواعيد شهرية
+    new Chart(document.getElementById('monthlyChart'), {
+        type: 'bar',
+        data: {
+            labels: monthNames,
+            datasets: [{
+                label: 'عدد المواعيد',
+                data: monthlyData,
+                backgroundColor: '#b5d4f4',
+                borderColor: '#1a6bb5',
+                borderWidth: 1,
+                borderRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1 }
+                }
+            }
+        }
+    });
+
+        // Chart 2 - حالات المواعيد
+        new Chart(document.getElementById('statusChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['منتظر', 'مكتمل', 'ملغي'],
+                datasets: [{
+                    data: [@Model.PendingAppointments,
+                           @Model.CompletedAppointments,
+                           @Model.CancelledAppointments],
+                    backgroundColor: ['#faeeda', '#e1f5ee', '#fcebeb'],
+                    borderColor:     ['#fac775', '#5dcaa5', '#f09595'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    </script>
+}

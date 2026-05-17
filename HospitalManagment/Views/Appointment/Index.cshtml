@@ -1,0 +1,96 @@
+﻿@model IEnumerable<HospitalManagment.Models.Appointment>
+
+<h2>قائمة المواعيد</h2>
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div class="d-flex gap-2">
+        <a asp-action="Create" class="btn btn-primary">+ إضافة موعد</a>
+        <a asp-action="ExportPdf"
+           asp-route-status="@ViewBag.Status"
+           asp-route-date="@ViewBag.Date"
+           class="btn btn-danger">
+            🖨️ تصدير PDF
+        </a>
+    </div>
+
+    <form method="get" class="d-flex gap-2 flex-wrap">
+        <input type="text" name="search" value="@ViewBag.Search"
+               class="form-control" placeholder="ابحث باسم مريض أو طبيب..." style="width:220px;" />
+
+        <select name="status" class="form-control" style="width:130px;">
+            <option value="">كل الحالات</option>
+            <option value="منتظر" selected="@(ViewBag.Status == "منتظر")">منتظر</option>
+            <option value="مكتمل" selected="@(ViewBag.Status == "مكتمل")">مكتمل</option>
+            <option value="ملغي" selected="@(ViewBag.Status == "ملغي")">ملغي</option>
+        </select>
+
+        <input type="date" name="date" value="@ViewBag.Date"
+               class="form-control" style="width:160px;" />
+
+        <button type="submit" class="btn btn-primary">بحث</button>
+        @if (!string.IsNullOrEmpty(ViewBag.Search as string) ||
+                !string.IsNullOrEmpty(ViewBag.Status as string) ||
+                !string.IsNullOrEmpty(ViewBag.Date as string))
+        {
+            <a asp-action="Index" class="btn btn-secondary">مسح</a>
+        }
+    </form>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">لا توجد نتائج</div>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>المريض</th>
+                <th>الطبيب</th>
+                <th>التخصص</th>
+                <th>تاريخ الموعد</th>
+                <th>الحالة</th>
+                <th>ملاحظات</th>
+                <th>العمليات</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var appointment in Model)
+            {
+                <tr>
+                    <td>@appointment.Patient?.FullName</td>
+                    <td>@appointment.Doctor?.FullName</td>
+                    <td>@appointment.Doctor?.Specialization</td>
+                    <td>@appointment.AppointmentDate.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>
+                        @if (appointment.Status == "منتظر")
+                        {
+                            <span class="badge bg-warning">منتظر</span>
+                        }
+                        else if (appointment.Status == "مكتمل")
+                        {
+                            <span class="badge bg-success">مكتمل</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">ملغي</span>
+                        }
+                    </td>
+                    <td>@appointment.Notes</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@appointment.Id"
+                           class="btn btn-warning btn-sm">تعديل</a>
+                        <a asp-action="Delete" asp-route-id="@appointment.Id"
+                           class="btn btn-danger btn-sm"
+                           onclick="return confirm('هل أنت متأكد؟')">حذف</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <p class="text-muted" style="font-size:12px;">
+        إجمالي النتائج: @Model.Count()
+    </p>
+}
